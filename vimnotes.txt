@@ -1,0 +1,325 @@
+This text file contains my personal notes for how to do things in vim.  It can be displayed
+with \VN
+
+Open questions:
+
+Answered questions:
+
+* Sometimes if I have a file open and I close it with bd (buffer delete), the window it's displayed in 
+is closed, which sucks.  
+A This is the default vim behavior.  I've added the bufkill plugin and mapped <Leader>bd to it's BD command, which
+destroys the buffer without closing the window.
+
+* In insert mode, if I am indenting and I overshoot, how do I go back one indent level?
+A C-T indents; C-D dedents in insert mode
+
+* In insert mode, if I press enter, then backspace, I can't move back up to the last line.  How can I change that?
+A That's the default vi behavior.  I put 'set backspace=indent,eol,start' in vimrc and now it works as expected
+
+* In insert mode, C-backspace should delete the previous word, and C-delete the current word.
+A By default, what I think of as C-backspace is mapped to Control-W.  Control-W deletes words with punctuation
+treated as a separate word
+
+this is mapped to CTRL-BS by:
+
+:imap <C-BS> <C-W>
+
+* Given a key sequence like Control-Shift-W, how do I determine what it maps to?
+A help index.txt will list all the key commands broken down by mode.  These are the default key mappins for VIM.
+:verbose map <key> 
+will show any custom key mappings for <key>
+
+* If I C-f forward to the end of the document, I can scroll so far only the last line is visible.  How can I limit it so that the cursor will move to the end but the window won't scroll so far?
+A I can't figure this out.  There's scrolloff, which when set to non-zero scrolls as necessary to keep the cursor
+at least scrolloff lines away from the top or bottom edge of the screen
+
+* How can I paste text I've yanked into Ex or Command mode?
+A Assuming you yanked to the default unnamed register, in command mode hit C-R," .  If you used another register, like
+a, you'd hit C-R,a
+
+* How can I yank some text, and replace some other text with it?
+A This isn't straightforward, as it runs afoul of VIM's default behavior when replacing text, which is to yank it to
+the default register, thus overwriting what you were going to paste in the first place.
+
+The naive approach, using viw(visual mode, select Inner Word)p will work, but now the replaced text is in the default
+register, so if there's another instance you want to replace, too bad.
+
+
+
+== Options
+
+:browse options is a handy interactive options browser
+:browse set browses set options
+
+
+== Movement
+
+h - left
+j - down
+k - up
+l - right
+H - top of screen
+M - middle of screen
+L - bottom of screen
+C-F - Page down
+C-B - Page up
+w - next word
+W - next word, punctuation not considered a word
+b - previous word
+B - previous word, punctionation not considered a word
+e - end of word
+E - end of word, punctuation not considered a word
+gg - Beginning of file
+nG - Go to line 'n'
+G - end of file
+0 - start of current line (column 0), regardless of content
+$ - end of current line
+^ - start of TEXT on current line.
+% - Move tp matching brace, paren, etc
+} - move to end of paragraph
+{ move to start of paragraph
+( - Move to start of sentence
+) - Move to start of next sentence
+" - Move to location of last edit in current file
+]] - Move to next function (in supported languages)
+[[ - Move to previous function (in supported languages)
+
+== Scrolling
+
+zt - Scroll so current line it's at the top of the page
+zz - Scroll so current line is in the middle of the page
+zb - Scroll so current line is at the bottom of the page
+
+== Modes
+
+i - insert
+I - insert at start of line
+a - append
+A - append at end of line
+ea - append at end of word
+C-[ - Normal mode
+
+== Indentation
+
+By default, in insert mode TAB inserts a tab (which i've configured for 8 spaces)
+C-T indents by shiftwidth (I use 4), and C-D dedents by same.
+
+In command mode < dedents and > indents.  Each of these expects a movement command.  <</>> operate on a line.
+<}, for example, dedents a paragraph.
+
+I'm strongly considering remapping TAB to C-T and S-TAB to C-D, as I am quite used to those keys.
+
+
+== Edits
+
+r - replace single character.  Does not enter insert mode
+J - join line below with current
+cc - change whole line
+cw - change to end of word
+c$ - change to end of line
+s - delete char at cursor and substitute text
+S - delete line at cursor and subsitute text (same as CC)
+xp - Transpose two letters
+u - undo
+C-r - redo
+. -repeat
+~ - switch case
+
+== Visual mode
+v - start visual mode.  Mark selection by moving around
+V - start linewise selection mode
+C-V - start block selection mode
+For each of the visual modes above, pressing the key again will exit that mode.
+Also note you can switch from one mode to another.
+gv - Remark the area last marked
+o - move to other end of marked area
+O - move to other corner of block
+aw - mark a word
+ab - Mark a () block
+aB - mark a {} block
+ib - inner () block
+iB - inner {} block
+ESC - exit visual mode
+> - shift selection right
+< - shift selection left
+y - yank marked text
+d - delete marked text
+~ - switch case
+
+== Copy/Paste
+
+In command mode, p/P paste from the default register.  You can specify another
+register with "x, where 'x' is the register and " is a double-quote.
+
+In insert mode, C-r starts paste.  It must be followed by the register to paste from.  " is the default.
+
+In my .vimrc, I have 'set clipboard=unnamed' set, so ops like 'y' and 'p', which work with the unnamed
+register, also update the OS clipboard.  Thus, I can 'yy' a line and paste it into Notepad, or copy in notepad
+and 'p' it into vim.  
+
+However, that doesn't seem to impact the behavior of insert mode paste with C-r.  If I copy something in Notepad,
+C-r" does not paste it.  I have to do C-r*, where * is the register that corresponds to the OS clipboard.
+
+ggyG - Go to first line, yank till last line.  Effectively, select all/copy.
+ggVGp - Go to first line, enter line visual select mode, select to last line, place.  Effectively, select all/paste
+
+The same paste command works in command mode, so you could yank a file name, drop to command mode,
+type 'e ' then paste the file name to open the file.
+
+
+
+== Search/Replace
+/<pattern> - search for <patterN>
+?<pattern> - search backwards
+n - repeat in same dir
+N - repeat in reverse dir
+:%s/old/new/g - Global replace of old with new
+:%s/old/new/gc - Global with confirm
+
+== Completion
+
+C-n - Complete a word in insert mode (move forward through choice list)
+C-p - As above, but move backward
+C-x C-l - Complete a line in insert mode (C-n/C-p move forward/back)
+
+== Foldering
+
+VIM scripts start with folds enabled quite often as their authors seem to like this feature.
+I hate it.
+
+zo - Open folder under cursor
+zO - Open folds recursively
+zR - Open all folds
+zM - Close all folds
+zm - Fold more
+zn - Fold none; disables folds and opens all
+zN - Fold normal
+[z - Move to the start of the open fold.  If at start, move to fold that contains it
+]z - Move to the end of the current fold.  If at end, move to fold that contains it
+zj - Move downwards to the start of the next fold.  A closed fold counts as one fold
+zk - Move upwards to the end of the previous fold.
+
+
+== Buffers
+
+A buffer is a file that's read into memory.  A window displays a view of a buffer.
+
+A create FAQ on buffer concepts is at http://vim.wikia.com/wiki/Vim_buffer_FAQ
+
+e <file> - Open another file
+ls - List buffers
+bn - Next buffer
+bp - Previous buffer
+<n>b - Go to buffer number n
+b <file> - Go to the buffer containing <file> (prefix match works too)
+bd - Delete current buffer (file will be closed; next buffer will become current)
+bd <n> - Delete buffer n
+bd <file> - Delete buffer with filename prefix file
+C-^ (Actually a combination of Ctrl and the '6' key) Swiches to the previous file.  Handy for toggling
+        between two files
+
+== Windows
+
+:new <file> - split the screen horizontally, open <file> above
+:q - close the current window
+:qa - close all windows
+C-W [jk] - Move down/up one window
+
+== Highlighting
+
+I have hlsearch on, so when I run a search all matches are highlighted.  To make the current highlight
+go away without turning off highlights completely, do
+
+nohlsearch
+
+I've also created a mapleader command, hlo, to turn this off.
+
+So, just ron
+
+\hlo
+
+
+== <Leader>
+
+Oftentimes you'll see mappings using the <Leader> placeholder.  This corresponds to the 'leader'
+character, which defaults to a \ character.  This is usually where custom keystroke commands
+are specified.
+
+== NERDTree
+
+NERDTree is a file explorer extension. 
+
+I've mapped the \][ command to toggle the NERDTree browser.  The browser comes up
+as a window, so the window movment commands above apply.  NB: mapleader commands
+must be entered in Normal mode; they are no commands
+
+Pressing '?' in the NERDTree window will toggle some useful help, so there's no need
+to duplicate the commands here
+
+== Bookmarks
+-
+mx - Put bookmark 'x' at current line.  'x' can be a lower-case letter to create a file-local bookmark,
+while an uppser-case letter creates a global bookmark
+'x - Go to bookmark 'x'
+
+
+== Macros
+
+Macro support is pretty powerful.
+
+qa - Start recording macro to register 'a'
+q - Stop recording
+@@ - Replay recorded macro
+
+Interestingly, macros are just text in a register.  You can paste the text with "ap , edit the text, yank it back
+with gg"ayG , and run it.
+
+help q has more details
+
+== Resources
+Mapping keys in VIM,  Part I: http://vim.wikia.com/wiki/Mapping_keys_in_Vim_-_Tutorial_(Part_1)
+
+== Mapping
+
+the map/imap/cmap/vmap/etc keywords map keys to other commands.  the 'noremap' variants do too, but the {rhs}
+of the mapping is not expanded based on other mappings.
+
+So:
+
+map x foo
+map y xbar
+
+will do 'foobar' when you press 'y'.
+
+map x foo
+noremap y xbar
+
+will do 'xbar' when you press 'y'.
+
+Generally noremap is preferred unless you intend to expand keys in the {rhs} recursively
+
+There's a difference between mappings specified with 'map' and friends, and sequences used by VIM out of the
+box.
+
+If you type
+
+:map
+
+you'll get a list of normal/visual mode commands created by :map commands.  
+
+:map!
+
+does the same for insert mode.
+
+:verbose map <key>
+
+shows what a particular key is mapped to.
+
+But this won't list sequences built into VIM.
+
+To see the built-in commands, do:
+
+help index.txt
+
+== Sandbox
+foo bar baz boo
